@@ -34,9 +34,12 @@ PBProxyObject >> fullPythonClassName [
 { #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> gtAttributesFor: aView [
 	<gtView>
+	| attributes |
+	[ attributes := self attributeAt: #'__dict__' ]
+	on: PBPythonError do: [ ^ aView empty ].
 	^ aView forward
 		title: 'Attributes';
 		priority: 5;
-		object: [ self attributeAt: #'__dict__' ];
+		object: [ attributes ];
 		view: #gtItemsFor:
 ]
