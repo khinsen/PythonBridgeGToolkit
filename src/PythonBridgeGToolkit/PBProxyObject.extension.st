@@ -19,7 +19,7 @@ PBProxyObject >> fullPythonClassName [
 			yourself.
 	cf reset.
 	cf << fullNameExpr.
-	^ cf send waitForValue ]
+	^ cf send waitForValue
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
@@ -28,5 +28,5 @@ PBProxyObject >> attributeAt: aSymbol [
 	cf := self application commandFactory.
 	cf reset.
 	cf << (self => aSymbol).
-	^ cf send waitForValue ]
+	^ cf send waitForValue
 ]
