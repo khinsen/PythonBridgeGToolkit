@@ -1,6 +1,15 @@
 Extension { #name : #PBProxyObject }
 
 { #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> attributeAt: aSymbol [
+	| cf |
+	cf := self application commandFactory.
+	cf reset.
+	cf << (self => aSymbol).
+	^ cf send waitForValue
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> fullPythonClassName [
 	| cf typeExpr moduleExpr nameExpr fullNameExpr |
 	cf := self application commandFactory.
@@ -23,10 +32,11 @@ PBProxyObject >> fullPythonClassName [
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
-PBProxyObject >> attributeAt: aSymbol [
-	| cf |
-	cf := self application commandFactory.
-	cf reset.
-	cf << (self => aSymbol).
-	^ cf send waitForValue
+PBProxyObject >> gtAttributesFor: aView [
+	<gtView>
+	^ aView forward
+		title: 'Attributes';
+		priority: 5;
+		object: [ self attributeAt: #'__dict__' ];
+		view: #gtItemsFor:
 ]
