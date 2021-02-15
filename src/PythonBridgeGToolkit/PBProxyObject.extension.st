@@ -22,10 +22,7 @@ PBProxyObject >> attributeDictionary [
 
 { #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> evaluatePythonExpression: aP3GGenerable [
-	| commandFactory |
-	commandFactory := self application newCommandFactory.
-	commandFactory << aP3GGenerable.
-	^ commandFactory send waitForValue
+	^ self application evaluatePythonExpression: aP3GGenerable
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
@@ -56,7 +53,7 @@ PBProxyObject >> gtAttributesFor: aView [
 	attributes ifEmpty: [ ^ aView empty ].
 	^ aView columnedTree
 		title: 'Attributes';
-		priority: 5;
+		priority: 3;
 		items: [ attributes associations
 					sorted: [ :a :b | a key <= b key ] ];
 		children: [ :each | 
@@ -76,10 +73,11 @@ PBProxyObject >> gtDocStringFor: aView [
 	| docString |
 	[ docString := self attributeAt: #'__doc__' ]
 	on: PBPythonError do: [ ^ aView empty ].
-	docString ifEmpty: [ ^ aView empty ].
+	(docString isNil or: [ docString isEmpty ])
+		ifTrue: [ ^ aView empty ].
 	^ aView forward
 		title: 'Docstring';
-		priority: 4;
+		priority: 5;
 		object: [ docString ];
 		view: #gtStringFor:;
 		yourself
