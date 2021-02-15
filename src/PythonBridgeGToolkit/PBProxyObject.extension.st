@@ -53,6 +53,7 @@ PBProxyObject >> gtAttributesFor: aView [
 	| attributes |
 	[ attributes := self attributeDictionary ]
 	on: PBPythonError do: [ ^ aView empty ].
+	attributes ifEmpty: [ ^ aView empty ].
 	^ aView forward
 		title: 'Attributes';
 		priority: 5;
