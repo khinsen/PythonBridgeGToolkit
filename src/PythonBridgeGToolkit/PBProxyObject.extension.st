@@ -54,9 +54,18 @@ PBProxyObject >> gtAttributesFor: aView [
 	[ attributes := self attributeDictionary ]
 	on: PBPythonError do: [ ^ aView empty ].
 	attributes ifEmpty: [ ^ aView empty ].
-	^ aView forward
+	^ aView columnedTree
 		title: 'Attributes';
-		priority: 5;
-		object: [ attributes ];
-		view: #gtItemsFor:
+		priority: 1;
+		items: [ attributes associations
+					sorted: [ :a :b | a key <= b key ] ];
+		children: [ :each | 
+			each value isDictionary
+				ifTrue: [ each value associations ]
+				ifFalse: [ (each value isArray and: [ each value allSatisfy: #isDictionary ])
+						ifTrue: [ each value collectWithIndex: [ :x :i | i -> x ] ]
+						ifFalse: [ #() ] ] ];
+		column: 'Name' text: [ :assoc | assoc key ];
+		column: 'Value' text: [ :assoc | assoc value ];
+		send: [ :assoc | assoc value ]
 ]
