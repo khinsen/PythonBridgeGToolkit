@@ -2,17 +2,21 @@ Extension { #name : #PBProxyObject }
 
 { #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> attributeAt: aSymbol [
-	| cf |
-	cf := self application commandFactory.
-	cf reset.
-	cf << (self => aSymbol).
-	^ cf send waitForValue
+	^ self evaluatePythonExpression:
+		self => aSymbol
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> evaluatePythonExpression: aP3GGenerable [
+	| commandFactory |
+	commandFactory := self application newCommandFactory.
+	commandFactory << aP3GGenerable.
+	^ commandFactory send waitForValue
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> fullPythonClassName [
-	| cf typeExpr moduleExpr nameExpr fullNameExpr |
-	cf := self application commandFactory.
+	| typeExpr moduleExpr nameExpr fullNameExpr |
 	typeExpr := #type asP3GI callWith: { self }.
 	moduleExpr := typeExpr => #'__module__'.
 	nameExpr := typeExpr => #'__name__'.
@@ -26,9 +30,7 @@ PBProxyObject >> fullPythonClassName [
 			right: nameExpr;
 			operator: $+;
 			yourself.
-	cf reset.
-	cf << fullNameExpr.
-	^ cf send waitForValue
+	^ self evaluatePythonExpression: fullNameExpr
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
