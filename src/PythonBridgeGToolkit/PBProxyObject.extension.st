@@ -82,3 +82,18 @@ PBProxyObject >> gtDocStringFor: aView [
 		view: #gtStringFor:;
 		yourself
 ]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> gtStringFor: aView [
+	<gtView>
+	| string |
+	[ string := self evaluatePythonExpression:
+				(#'str' asP3GI callWith: { self }) ]
+	on: PBPythonError do: [ ^ aView empty ].
+	^ aView forward
+		title: 'String';
+		priority: 2;
+		object: [ string ];
+		view: #gtStringFor:;
+		yourself
+]
