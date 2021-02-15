@@ -56,7 +56,7 @@ PBProxyObject >> gtAttributesFor: aView [
 	attributes ifEmpty: [ ^ aView empty ].
 	^ aView columnedTree
 		title: 'Attributes';
-		priority: 1;
+		priority: 5;
 		items: [ attributes associations
 					sorted: [ :a :b | a key <= b key ] ];
 		children: [ :each | 
@@ -68,4 +68,19 @@ PBProxyObject >> gtAttributesFor: aView [
 		column: 'Name' text: [ :assoc | assoc key ];
 		column: 'Value' text: [ :assoc | assoc value ];
 		send: [ :assoc | assoc value ]
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> gtDocStringFor: aView [
+	<gtView>
+	| docString |
+	[ docString := self attributeAt: #'__doc__' ]
+	on: PBPythonError do: [ ^ aView empty ].
+	docString ifEmpty: [ ^ aView empty ].
+	^ aView forward
+		title: 'Docstring';
+		priority: 4;
+		object: [ docString ];
+		view: #gtStringFor:;
+		yourself
 ]
