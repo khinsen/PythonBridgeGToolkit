@@ -7,6 +7,20 @@ PBProxyObject >> attributeAt: aSymbol [
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> attributeDictionary [
+	| d |
+	d := self attributeAt: '__dict__'.
+	(d isKindOf: PBProxyObject) ifFalse: [ ^ d ].
+	"For classes, the __dict__ attribute is not a
+	 dictionary, but a MappingProxyType, which is a
+	 read-only variant of dictionary. Copy its items
+	 into a dictionary to get it through
+	 serialization."
+	^ self evaluatePythonExpression:
+		(#dict asP3GI callWith: { d })
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> evaluatePythonExpression: aP3GGenerable [
 	| commandFactory |
 	commandFactory := self application newCommandFactory.
@@ -37,7 +51,7 @@ PBProxyObject >> fullPythonClassName [
 PBProxyObject >> gtAttributesFor: aView [
 	<gtView>
 	| attributes |
-	[ attributes := self attributeAt: #'__dict__' ]
+	[ attributes := self attributeDictionary ]
 	on: PBPythonError do: [ ^ aView empty ].
 	^ aView forward
 		title: 'Attributes';
