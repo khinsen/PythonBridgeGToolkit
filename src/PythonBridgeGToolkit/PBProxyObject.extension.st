@@ -68,6 +68,25 @@ PBProxyObject >> gtAttributesFor: aView [
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> gtClassesFor: aView [
+	<gtView>
+	| classes |
+	(self isinstanceOfPythonClass: #ModuleType fromModule: 'types')
+		ifFalse: [ ^ aView empty ].
+	classes := (self attributeDictionary associations
+		select: [ :each | (each value isKindOf: PBProxyObject)
+					and: [ each value pythonClass = 'type' ] ])
+					asDictionary.
+	classes ifEmpty: [ ^ aView empty ].
+	^ aView list
+		title: 'Classes';
+		priority: -3;
+		items: [ classes keys ];
+		send: [ :each | classes at: each ];
+		yourself
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> gtDocStringFor: aView [
 	<gtView>
 	| docString |
@@ -84,6 +103,25 @@ PBProxyObject >> gtDocStringFor: aView [
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> gtFunctionsFor: aView [
+	<gtView>
+	| functions |
+	(self isinstanceOfPythonClass: #ModuleType fromModule: 'types')
+		ifFalse: [ ^ aView empty ].
+	functions := (self attributeDictionary associations
+		select: [ :each | (each value isKindOf: PBProxyObject)
+					and: [ each value pythonClass = 'function' ] ])
+					asDictionary.
+	functions ifEmpty: [ ^ aView empty ].
+	^ aView list
+		title: 'Functions';
+		priority: -5;
+		items: [ functions keys ];
+		send: [ :each | functions at: each ];
+		yourself
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> gtSourceCodeFor: aView [
 	<gtView>
 	| commandFactory sourceCode |
@@ -91,10 +129,7 @@ PBProxyObject >> gtSourceCodeFor: aView [
 		or: [ self isinstanceOfPythonClass: #MethodType fromModule: 'types' ])
 		or: [ self isinstanceOfPythonClass: #type fromModule: 'builtins' ])
 		ifFalse: [ ^ aView empty ].
-	commandFactory := self application newCommandFactory.
-	commandFactory << #inspect asP3GI import.
-	commandFactory << ((#inspect asP3GI => #getsource) callWith: { self }).
-	[ sourceCode := commandFactory send waitForValue ]
+	[ sourceCode := self sourceCode ]
 	on: PBPythonError do: [ ^ aView empty ].
 	^ aView forward
 		title: 'Source';
@@ -126,4 +161,15 @@ PBProxyObject >> isinstanceOfPythonClass: className fromModule: moduleName [
 	on: PBPythonError do: [ ^ false ].
 	^ self evaluatePythonExpression:
 		(#isinstance asP3GI callWith: { self. class })
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> sourceCode [
+	"Source code retrieval works only for functions, classes,
+	 and methods."
+	| commandFactory |
+	commandFactory := self application newCommandFactory.
+	commandFactory << #inspect asP3GI import.
+	commandFactory << ((#inspect asP3GI => #getsource) callWith: { self }).
+	^ commandFactory send waitForValue
 ]

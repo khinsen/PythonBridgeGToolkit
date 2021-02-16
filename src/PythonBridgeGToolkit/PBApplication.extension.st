@@ -11,24 +11,16 @@ PBApplication >> evaluatePythonExpression: aP3GGenerable [
 { #category : #'*PythonBridgeGToolkit' }
 PBApplication >> gtModulesFor: aView [
 	<gtView>
-	| attributes |
-	[ attributes := self loadedPythonModules ]
+	| modules |
+	[ modules := self loadedPythonModules ]
 	on: PBPythonError do: [ ^ aView empty ].
-	attributes ifEmpty: [ ^ aView empty ].
-	^ aView columnedTree
+	modules ifEmpty: [ ^ aView empty ].
+	^ aView list
 		title: 'Modules';
 		priority: 3;
-		items: [ attributes associations
-					sorted: [ :a :b | a key <= b key ] ];
-		children: [ :each | 
-			each value isDictionary
-				ifTrue: [ each value associations ]
-				ifFalse: [ (each value isArray and: [ each value allSatisfy: #isDictionary ])
-						ifTrue: [ each value collectWithIndex: [ :x :i | i -> x ] ]
-						ifFalse: [ #() ] ] ];
-		column: 'Name' text: [ :assoc | assoc key ];
-		column: 'Value' text: [ :assoc | assoc value ];
-		send: [ :assoc | assoc value ]
+		items: [ modules keys sorted ];
+		send: [ :each | modules at: each ];
+		yourself
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
