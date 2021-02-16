@@ -84,6 +84,27 @@ PBProxyObject >> gtDocStringFor: aView [
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> gtSourceCodeFor: aView [
+	<gtView>
+	| commandFactory sourceCode |
+	(((self isinstanceOfPythonClass: #FunctionType fromModule: 'types')
+		or: [ self isinstanceOfPythonClass: #MethodType fromModule: 'types' ])
+		or: [ self isinstanceOfPythonClass: #type fromModule: 'builtins' ])
+		ifFalse: [ ^ aView empty ].
+	commandFactory := self application newCommandFactory.
+	commandFactory << #inspect asP3GI import.
+	commandFactory << ((#inspect asP3GI => #getsource) callWith: { self }).
+	[ sourceCode := commandFactory send waitForValue ]
+	on: PBPythonError do: [ ^ aView empty ].
+	^ aView forward
+		title: 'Source';
+		priority: -1;
+		object: [ sourceCode ];
+		view: #gtStringFor:;
+		yourself
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> gtStringFor: aView [
 	<gtView>
 	| string |
