@@ -97,3 +97,12 @@ PBProxyObject >> gtStringFor: aView [
 		view: #gtStringFor:;
 		yourself
 ]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> isinstanceOfPythonClass: className fromModule: moduleName [
+	| class |
+	[ class := self application pythonClass: className fromModule: moduleName ]
+	on: PBPythonError do: [ ^ false ].
+	^ self evaluatePythonExpression:
+		(#isinstance asP3GI callWith: { self. class })
+]
