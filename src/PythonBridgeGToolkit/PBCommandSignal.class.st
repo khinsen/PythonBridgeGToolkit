@@ -54,17 +54,24 @@ PBCommandSignal >> command: aPBCommand [
 ]
 
 { #category : #inspecting }
+PBCommandSignal >> gtBindingsFor: aView [
+	<gtView>
+	self command bindings ifEmpty: [ ^ aView empty ].
+	^ aView forward
+		title: 'Bindings';
+		priority: -1;
+		object: [ self command ];
+		view: #gtBindingsFor:;
+		yourself
+]
+
+{ #category : #inspecting }
 PBCommandSignal >> gtPythonCodeFor: aView [
 	<gtView>
 	^ aView forward
 		title: 'Python code';
-		priority: 0;
-		object: [ self pythonCode ];
-		view: #gtStringFor:;
+		priority: -2;
+		object: [ self command ];
+		view: #gtPythonCodeFor:;
 		yourself
-]
-
-{ #category : #converting }
-PBCommandSignal >> pythonCode [
-	^ command pythonCode
 ]
