@@ -122,6 +122,20 @@ PBProxyObject >> gtFunctionsFor: aView [
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> gtMatplotlibFigureFor: aView [
+	<gtView>
+	| commandFactory sourceCode |
+	(self isinstanceOfPythonClass: #Figure fromModule: 'matplotlib.figure')
+		ifFalse: [ ^ aView empty ].
+	^ aView forward
+		title: 'Figure';
+		priority: -1;
+		object: [ PNGReadWriter formFromStream: self matplotlibFigureAsPNG readStream  ];
+		view: #gtFormFor:;
+		yourself
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> gtSourceCodeFor: aView [
 	<gtView>
 	| commandFactory sourceCode |
@@ -161,6 +175,21 @@ PBProxyObject >> isinstanceOfPythonClass: className fromModule: moduleName [
 	on: PBPythonError do: [ ^ false ].
 	^ self evaluatePythonExpression:
 		(#isinstance asP3GI callWith: { self. class })
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBProxyObject >> matplotlibFigureAsPNG [
+	| commandFactory |
+	commandFactory := self application newCommandFactory.
+	commandFactory << (#io asP3GI import).
+	"commandFactory << (#copy asP3GI import)."
+	commandFactory << (#memfile asP3GI <- ((#io asP3GI => #BytesIO) 	callWith: #())).
+	commandFactory << ((self => #savefig) callWith: { #memfile asP3GI} with: { #format -> 'png'} asDictionary).
+"	commandFactory <<  (#imagedata asP3GI <- (#copy asP3GI => #copy callWith: { ((#memfile asP3GI => #getvalue) callWith: #()) }))."
+	commandFactory << (#imagedata asP3GI <- ((#memfile asP3GI => #getvalue) callWith: #())).
+	commandFactory << (((#memfile asP3GI) => #close) callWith: #()).
+	commandFactory << #imagedata asP3GI.
+	^ commandFactory sendAndWait
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
