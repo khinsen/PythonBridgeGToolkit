@@ -130,7 +130,7 @@ PBProxyObject >> gtMatplotlibFigureFor: aView [
 	^ aView forward
 		title: 'Figure';
 		priority: -1;
-		object: [ PNGReadWriter formFromStream: self matplotlibFigureAsPNG readStream  ];
+		object: [  self matplotlibFigureAsPNG ];
 		view: #gtFormFor:;
 		yourself
 ]
@@ -179,17 +179,18 @@ PBProxyObject >> isinstanceOfPythonClass: className fromModule: moduleName [
 
 { #category : #'*PythonBridgeGToolkit' }
 PBProxyObject >> matplotlibFigureAsPNG [
-	| commandFactory |
+	"This method is meant to be used only with proxies wrapping
+	 matplotlib Figure objects!"
+	| commandFactory bytes |
 	commandFactory := self application newCommandFactory.
 	commandFactory << (#io asP3GI import).
-	"commandFactory << (#copy asP3GI import)."
 	commandFactory << (#memfile asP3GI <- ((#io asP3GI => #BytesIO) 	callWith: #())).
 	commandFactory << ((self => #savefig) callWith: { #memfile asP3GI} with: { #format -> 'png'} asDictionary).
-"	commandFactory <<  (#imagedata asP3GI <- (#copy asP3GI => #copy callWith: { ((#memfile asP3GI => #getvalue) callWith: #()) }))."
 	commandFactory << (#imagedata asP3GI <- ((#memfile asP3GI => #getvalue) callWith: #())).
 	commandFactory << (((#memfile asP3GI) => #close) callWith: #()).
 	commandFactory << #imagedata asP3GI.
-	^ commandFactory sendAndWait
+	bytes := commandFactory sendAndWait.
+	^ PNGReadWriter formFromStream: bytes readStream
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
