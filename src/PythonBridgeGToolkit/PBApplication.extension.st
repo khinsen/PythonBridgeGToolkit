@@ -1,11 +1,34 @@
 Extension { #name : #PBApplication }
 
 { #category : #'*PythonBridgeGToolkit' }
+PBApplication >> currentPythonEnvironment [
+	| commandFactory |
+	commandFactory := self newCommandFactory.
+	commandFactory << (#locals asP3GI callWith: #()).
+	^ commandFactory send waitForValue
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
 PBApplication >> evaluatePythonExpression: aP3GGenerable [
 	| commandFactory |
 	commandFactory := self newCommandFactory.
 	commandFactory << aP3GGenerable.
 	^ commandFactory send waitForValue
+]
+
+{ #category : #'*PythonBridgeGToolkit' }
+PBApplication >> gtEnvironmentFor: aView [
+	<gtView>
+	| environment |
+	[ environment := self currentPythonEnvironment ]
+	on: PBPythonError do: [ ^ aView empty ].
+	environment ifEmpty: [ ^ aView empty ].
+	^ aView list
+		title: 'Environment';
+		priority: 4;
+		items: [ environment keys sorted ];
+		send: [ :each | environment at: each ];
+		yourself
 ]
 
 { #category : #'*PythonBridgeGToolkit' }
